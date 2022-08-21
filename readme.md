@@ -8,9 +8,9 @@ Checks to see if return values from functions are being consumed.
 
 Suggested environment is Ubuntu 22.04
 
-- "sudo apt install clang
-- "sudo apt install cmake
-- "sudo apt install libclang-dev
+- sudo apt install clang
+- sudo apt install cmake
+- sudo apt install libclang-dev
 - git clone \<repo>
 - cd \<repo>
 - cmake -B build/
