@@ -8,6 +8,8 @@ project(Return_Checker
 
 find_package(Clang REQUIRED CONFIG)
 
+include_directories(SYSTEM "${LLVM_INCLUDE_DIRS};${CLANG_INCLUDE_DIRS}")
+
 add_library(Return_Checker SHARED source/return_checker.cpp)
 
 target_compile_features(Return_Checker PRIVATE cxx_std_20)

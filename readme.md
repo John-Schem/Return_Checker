@@ -15,3 +15,5 @@ Suggested environment is Ubuntu 22.04
 - cd \<repo>
 - cmake -B build/
 - cmake --build build/
+
+Generated <b>libReturn_Checker.so</b> will be contained in \<repo>/build/ directory
