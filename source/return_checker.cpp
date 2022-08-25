@@ -12,28 +12,19 @@ using namespace llvm;
 class ReturnCheckerVisitor : public RecursiveASTVisitor<ReturnCheckerVisitor>
 {
 public:
-    explicit ReturnCheckerVisitor(ASTContext *Context) : astContext(Context) {}
+    explicit ReturnCheckerVisitor(ASTContext * astContext) : astContext(astContext) {}
 
-    bool VisitCXXRecordDecl(CXXRecordDecl *cxxRecordDecl)
+    bool VisitCXXRecordDecl(CXXRecordDecl * cxxRecordDecl)
     {
-        FullSourceLoc FullLocation = astContext->getFullLoc(cxxRecordDecl->getBeginLoc());
+        // For debugging, dumping the AST nodes will show which nodes are already
+        // being visited.
+        cxxRecordDecl->dump();
 
-        // Basic sanity checking
-        if (!FullLocation.isValid())
-        {
-            return true;
-        }
+        llvm::outs() << "\n\n\n\n\n\n";
 
-        // There are 2 types of source locations: in a file or a macro expansion. The
-        // latter contains the spelling location and the expansion location (both are
-        // file locations), but only the latter is needed here (i.e. where the macro
-        // is expanded). File locations are just that - file locations.
-        if (FullLocation.isMacroID())
-        {
-            FullLocation = FullLocation.getExpansionLoc();
-        }
-
-        SourceManager &SrcMgr = astContext->getSourceManager();
+        // The return value indicates whether we want the visitation to proceed.
+        // Return false to stop the traversal of the AST.
+        return true;
     }
 
 private:
@@ -43,11 +34,11 @@ private:
 class ReturnCheckerConsumer : public clang::ASTConsumer 
 {
 public:
-    explicit ReturnCheckerConsumer(ASTContext *Ctx) : returnCheckerVisitor(Ctx) {}
+    explicit ReturnCheckerConsumer(ASTContext * astContext) : returnCheckerVisitor(astContext) {}
 
-    void HandleTranslationUnit(clang::ASTContext &Ctx) override
+    void HandleTranslationUnit(clang::ASTContext & astContext) override
     {
-        returnCheckerVisitor.TraverseDecl(Ctx.getTranslationUnitDecl());
+        returnCheckerVisitor.TraverseDecl(astContext.getTranslationUnitDecl());
     }
 
 private:
@@ -58,15 +49,13 @@ class ReturnCheckerAction : public clang::PluginASTAction
 {
 public:
     std::unique_ptr<clang::ASTConsumer> 
-    CreateASTConsumer(clang::CompilerInstance &Compiler,
-                      llvm::StringRef InFile)
+    CreateASTConsumer(clang::CompilerInstance & compilerInstance, llvm::StringRef inFile)
     override
     {
-        return std::unique_ptr<clang::ASTConsumer>(
-        std::make_unique<ReturnCheckerConsumer>(&Compiler.getASTContext()));
+        return std::unique_ptr<clang::ASTConsumer>(std::make_unique<ReturnCheckerConsumer>(&compilerInstance.getASTContext()));
     }
 
-    bool ParseArgs(const CompilerInstance &CI, const std::vector<std::string> &args) override
+    bool ParseArgs(const CompilerInstance & compilerInstance, const std::vector<std::string> & args) override
     {
         return true;
     }
