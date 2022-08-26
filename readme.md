@@ -18,7 +18,7 @@ Suggested environment is Ubuntu 22.04
 
 Generated <b>libReturn_Checker.so</b> will be contained in \<repo>/build/ directory
 
-## How to Test with Example Plugin
+## How to Test with Example Program
 
 Make sure to build the plugin first
 
