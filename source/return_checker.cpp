@@ -8,22 +8,23 @@
 
 using namespace clang;
 using namespace llvm;
+using namespace std;
 
 class ReturnCheckerVisitor : public RecursiveASTVisitor<ReturnCheckerVisitor>
 {
 public:
     explicit ReturnCheckerVisitor(ASTContext * astContext) : astContext(astContext) {}
 
-    bool VisitCXXRecordDecl(CXXRecordDecl * cxxRecordDecl)
+    bool VisitFunctionDecl(FunctionDecl * functionDecl)
     {
-        // For debugging, dumping the AST nodes will show which nodes are already
-        // being visited.
-        cxxRecordDecl->dump();
+        outs() << functionDecl->getReturnType().getAsString() << "|" << functionDecl->getNameInfo().getName().getAsString() << "\n";
 
-        llvm::outs() << "\n\n\n\n\n\n";
+        /*
+            Todo:
+            - Create dictionary of all functions that are defined and their return values
+            - Checks all function calls inside user defined functions for consuming return values
+        */
 
-        // The return value indicates whether we want the visitation to proceed.
-        // Return false to stop the traversal of the AST.
         return true;
     }
 

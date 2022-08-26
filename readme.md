@@ -22,8 +22,8 @@ Generated <b>libReturn_Checker.so</b> will be contained in \<repo>/build/ direct
 
 Make sure to build the plugin first
 
-- cd \<repo>/example_program
-- chmod +x build_example.sh #If needed
-- ./build_example.sh
+- cd \<repo>
+- chmod +x build_example_program.sh #If needed
+- ./build_example_program.sh
 
 This will call clang to compile main.cpp in the example program with Return_Checker run as a plugin during the compilation process
