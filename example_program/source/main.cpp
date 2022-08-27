@@ -1,8 +1,13 @@
 #include <iostream>
 
-struct taco
+struct Structure
 {
     int var = 5;
+
+    Structure()
+    {
+
+    }
 
     int exampleMethod(bool stuff)
     {
