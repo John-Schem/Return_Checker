@@ -10,72 +10,63 @@
 using namespace clang;
 using namespace llvm;
 
-
-/*
-    Steps:
-    - Create list of all functions and what they return
-    - Create list of all classes, their methods and what they return
-    - Checks all function calls(not methods) inside user defined functions/methods for consuming return values
-        - Ignore functions that return void
-        - Two ways return can be consumed: 1) assignment, 2) being passed to another function
-    - Checks all method calls inside user defined functions/methods for consuming return values
-        - Needs to have awareness of class type which this method is being called on since different
-          classes can have methods with the same name
-        - Same two ways return values can be consumed: 1) assignment, 2) being passed to another function
-*/
-class ReturnCheckerVisitor : public RecursiveASTVisitor<ReturnCheckerVisitor>
+class FunctionReturnCheckVisitor : public RecursiveASTVisitor<FunctionReturnCheckVisitor>
 {
 public:
-    explicit ReturnCheckerVisitor(ASTContext * astContext) : astContext(astContext) {}
+    explicit FunctionReturnCheckVisitor() {}
 
-    void PrintAllInfoForFunctions()
+    bool VisitDeclRefExpr(DeclRefExpr * declRefExpr)
     {
-        outs() << "Printing all info for functions... \n";
+        /*
+            At DeclRefExpr, get line information, and name of function if non-class function call
+            Above in MemberExpr, if method call, get function call
+            Above that in CallExpr or CXXMemberCallExpr, get function return value
 
-        for(std::map<std::string, std::string>::iterator it = functionNameToReturnType.begin(); it != functionNameToReturnType.end(); it++)
-        {
-            outs() << it->second << " " << it->first << "\n";
-        }
+            Then traverse upwards looking for next ...Stmt class
+            If next is CompoundStmt, then return value is not consumed,
+            so print warning information
+        */
 
-        outs() << "Done printing all info for functions... \n";
-    }
-
-    bool VisitFunctionDecl(FunctionDecl * functionDecl)
-    {
-        {
-            std::string functionName = functionDecl->getNameInfo().getName().getAsString();
-            std::string functionReturnType = functionDecl->getReturnType().getAsString();
-
-            outs() << "Adding = " <<  functionDecl->getReturnType().getAsString() << " " << functionDecl->getNameInfo().getName().getAsString() << "\n";
-
-            functionNameToReturnType[std::move(functionName)] = std::move(functionReturnType);
-        }
-
-
+        declRefExpr->dump();
 
         return true;
     }
-
-private:
-    ASTContext * astContext;
-
-    std::map<std::string, std::string> functionNameToReturnType;
 };
 
 class ReturnCheckerConsumer : public clang::ASTConsumer 
 {
 public:
-    explicit ReturnCheckerConsumer(ASTContext * astContext) : returnCheckerVisitor(astContext) {}
+    explicit ReturnCheckerConsumer(SourceManager & sourceManager) : sourceManager(sourceManager) {}
 
+    /*
+        RecursiveASTVisitor will recurse down and visit everything
+        We could either pass it the root(always TranslationUnitDecl at top) and traverse everything
+        or we can pass it individual items of interest we want it to traverse
+        When it finds something we care about, it will then "visit" it
+
+        First map all functions to their return types
+        Then check all user defined functions to see if they consume
+        return values from called functions
+    */
     void HandleTranslationUnit(clang::ASTContext & astContext) override
     {
-        returnCheckerVisitor.TraverseDecl(astContext.getTranslationUnitDecl());
+        auto declarations = astContext.getTranslationUnitDecl()->decls();
 
-        returnCheckerVisitor.PrintAllInfoForFunctions();
+        for(auto & declaration : declarations)
+        {
+            const auto & fileID = sourceManager.getFileID(declaration->getLocation());
+
+            /* Only check user defined functions */
+            if (fileID == sourceManager.getMainFileID())
+            {
+                functionReturnCheckVisitor.TraverseDecl(declaration);
+            }
+        }
     }
 
 private:
-  ReturnCheckerVisitor returnCheckerVisitor;
+    SourceManager & sourceManager;
+    FunctionReturnCheckVisitor functionReturnCheckVisitor;
 };
 
 class ReturnCheckerAction : public clang::PluginASTAction 
@@ -85,7 +76,7 @@ public:
     CreateASTConsumer(clang::CompilerInstance & compilerInstance, llvm::StringRef inFile)
     override
     {
-        return std::unique_ptr<clang::ASTConsumer>(std::make_unique<ReturnCheckerConsumer>(&compilerInstance.getASTContext()));
+        return std::unique_ptr<clang::ASTConsumer>(std::make_unique<ReturnCheckerConsumer>(compilerInstance.getSourceManager()));
     }
 
     bool ParseArgs(const CompilerInstance & compilerInstance, const std::vector<std::string> & args) override

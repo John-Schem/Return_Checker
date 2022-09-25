@@ -19,5 +19,8 @@ struct Structure
 
 int main()
 {
-    std::cout << "Hello :)";
+    Structure structure;
+    structure.exampleMethod(true);
+
+    //std::cout << "Hello :)";
 }
