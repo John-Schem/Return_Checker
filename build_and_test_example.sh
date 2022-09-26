@@ -3,6 +3,8 @@
 # Build clang plugin
 cmake --build build/
 
+echo -e "\n\n\n\n"
+
 if [ "$1" == "c" ];
 then
     # Pass plugin to clang and build example c program

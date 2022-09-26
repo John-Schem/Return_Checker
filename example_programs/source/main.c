@@ -13,17 +13,17 @@ int main()
 
     while(0)
     {
-        example();
+        example(); //Warn
     }
 
     if(example() == 100)
     {
-        printf("hmmmm\n");
+        int example1 = printf("hmmmm\n");
     }
 
-    printf("Example = %d \n", example());
+    int example2 = printf("Example = %d \n", example());
 
-    example();
+    example(); //Warn
 
     return 1;
 }

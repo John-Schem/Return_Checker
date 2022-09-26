@@ -9,7 +9,7 @@ struct Structure
 
     }
 
-    int exampleMethod(bool stuff)
+    int exampleMethod(int stuff)
     {
         int random = 10;
 
@@ -20,7 +20,8 @@ struct Structure
 int main()
 {
     Structure structure;
-    structure.exampleMethod(true);
+    structure.exampleMethod(true); //Warn
 
-    //std::cout << "Hello :)";
+    structure.exampleMethod(structure.exampleMethod(true)); //Warn
+    int example2 = structure.exampleMethod(true);
 }
