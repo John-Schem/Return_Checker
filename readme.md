@@ -1,6 +1,6 @@
 # Return_Checker
 
-Checks to see if return values from functions are being consumed. Return_Checker is built as a Clang plugin and passed to clang at compilation. This allows it to integrate into normal development workflow and produce warnings during the compilation process.
+Checks to see if return values from functions are being consumed in C and C++. Return_Checker is built as a Clang plugin and passed to clang at compilation. This allows it to integrate into normal development workflow and produce warnings during the compilation process. Will only produce warnings in user-defined code. That is, will not produce warnings in code from header files included in your source files.
 
 
 
